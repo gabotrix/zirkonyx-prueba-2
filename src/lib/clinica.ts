@@ -9,4 +9,6 @@ export const clinica = {
   telefono: "(000) 123 4567",
   telefonoEnlace: "tel:0001234567",
   horario: ["Lunes a viernes 8:00 – 19:00", "Sábados 9:00 – 13:00"],
+  // Zona horaria de las citas (se supone Colombia por el dominio .co).
+  zonaHoraria: "America/Bogota",
 };
