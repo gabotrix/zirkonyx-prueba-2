@@ -1,46 +1,65 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Icono from "@/components/Icono";
-import { clinica } from "@/lib/clinica";
+import PasosReserva from "@/components/PasosReserva";
+import { conConexion } from "@/lib/db";
+import { serviciosActivos, textoDuracion } from "@/lib/reservas";
+import { parametro, urlReserva, type Parametros } from "@/lib/rutasReserva";
 import { buscarServicio } from "@/lib/servicios";
 
 export const metadata: Metadata = {
   title: "Agendar cita · Clínica Dental Sonrisa Viva",
 };
 
-// Etapa 1: aviso provisional. En la etapa 2 esta ruta será el paso 1
-// de la reserva («Servicio») y usará ?servicio=<slug> para dejarlo elegido.
-export default function Agendar({
-  searchParams,
-}: {
-  searchParams: { servicio?: string | string[] };
-}) {
-  const slug = Array.isArray(searchParams.servicio) ? searchParams.servicio[0] : searchParams.servicio;
-  const servicio = buscarServicio(slug);
+export const dynamic = "force-dynamic";
+
+// Paso 1 · Servicio. Con ?servicio=<slug> (tarjetas de la página de inicio
+// o al volver con Atrás) el servicio ya aparece elegido.
+export default async function PasoServicio({ searchParams }: { searchParams: Parametros }) {
+  const lista = await conConexion(serviciosActivos);
+  const elegido = lista.find((s) => s.slug === parametro(searchParams.servicio));
 
   return (
     <main className="sec alt">
       <div className="wrap">
-        <div className="box ctr">
-          <div className="okc">
-            <Icono nombre="calendario" tamano={40} />
+        <div className="box">
+          <PasosReserva actual={1} />
+          <h1 className="t">¿Qué servicio necesitas?</h1>
+          <p className="st">Elige uno para ver los horarios disponibles.</p>
+          <div className="lista">
+            {lista.map((s) => {
+              const sel = s.slug === elegido?.slug;
+              return (
+                <Link
+                  key={s.slug}
+                  className={sel ? "opc sel" : "opc"}
+                  href={urlReserva("dia-hora", { servicio: s.slug })}
+                  aria-current={sel ? "true" : undefined}
+                >
+                  <span className="ic">
+                    <Icono nombre={buscarServicio(s.slug)?.icono ?? "sonrisa"} tamano={22} />
+                  </span>
+                  <span>
+                    <b>{s.nombre}</b>
+                    <small>{textoDuracion(s)}</small>
+                  </span>
+                </Link>
+              );
+            })}
           </div>
-          <h1 className="t">Muy pronto podrás agendar en línea</h1>
-          <p className="st">
-            {servicio
-              ? `Mientras tanto, llámanos para agendar tu cita de ${servicio.nombre.toLowerCase()}.`
-              : "Mientras tanto, llámanos y con gusto te damos una cita."}
-          </p>
-          <p className="st">
-            {clinica.horario[0]} · {clinica.horario[1]}
-          </p>
-          <div className="row" style={{ justifyContent: "center" }}>
-            <a className="btn" href={clinica.telefonoEnlace}>
-              Llamar al {clinica.telefono}
-            </a>
+          <div className="acc">
             <Link className="btn btn2" href="/">
-              Volver al inicio
+              Volver
             </Link>
+            {elegido ? (
+              <Link className="btn" href={urlReserva("dia-hora", { servicio: elegido.slug })}>
+                Continuar
+              </Link>
+            ) : (
+              <span className="btn btn-off" aria-disabled="true">
+                Continuar
+              </span>
+            )}
           </div>
         </div>
       </div>

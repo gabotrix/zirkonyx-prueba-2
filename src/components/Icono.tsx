@@ -70,6 +70,12 @@ const trazos = {
       <path d="M3 10h18" />
     </>
   ),
+  listo: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m16 9-5.5 5.5L8 12" />
+    </>
+  ),
   menu: (
     <>
       <path d="M4 6h16" />
